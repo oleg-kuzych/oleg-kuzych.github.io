@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>find path</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+          integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-9">
+            <canvas id="board">
+                <p>No Canvas support</p>
+            </canvas>
+        </div>
+        <div class="col-3">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <h3>Board settings</h3>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="width_span">Width</span>
+                            </div>
+                            <input id="board_width" type="number" class="form-control" placeholder="Width"
+                                   aria-label="Width" aria-describedby="width_span" min="1" max="50" value="20"
+                                   required="required">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="height_span">Height</span>
+                            </div>
+                            <input id="board_height" type="number" class="form-control" placeholder="Height"
+                                   aria-label="Height" aria-describedby="height_span" min="1" max="50" value="15"
+                                   required="required">
+                            <button id="init" class="btn btn-primary">Apply</button>
+                        </div>
+                        <button id="cleanup" type="button" class="btn btn-outline-secondary btn-block">
+                            Clean up (removes execution results)
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <h3>Editor mode</h3>
+                        <div class="container-fluid text-center">Hold <code>Ctrl</code> button to modify maze</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4">
+                        <form>
+                            <div class="form-check">
+                                <input class="form-check-input" id="whiteCell" name="cellType" type="radio" value="0"/>
+                                <label class="form-check-label" for="whiteCell">
+                                    <h4><span class="badge badge-light">Space</span></h4>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" id="blackCell" name="cellType" type="radio" value="1"
+                                       checked="checked"/>
+                                <label class="form-check-label" for="blackCell">
+                                    <h4><span class="badge badge-dark">Wall</span></h4>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" id="yellowCell" name="cellType" type="radio" value="2">
+                                <label class="form-check-label" for="yellowCell">
+                                    <h4><span class="badge badge-warning">Start</span></h4>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" id="redCell" name="cellType" type="radio" value="3">
+                                <label class="form-check-label" for="redCell">
+                                    <h4><span class="badge badge-danger">End</span></h4>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" id="greenCell" name="cellType" type="radio" value="8">
+                                <label class="form-check-label" for="greenCell">
+                                    <h4><span class="badge badge-success">Visited</span></h4>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" id="blueCell" name="cellType" type="radio" value="9">
+                                <label class="form-check-label" for="blueCell">
+                                    <h4><span class="badge badge-primary">Route</span></h4>
+                                </label>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-8">
+                        <small>
+                            <pre class="text-muted" id="stats"></pre>
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <h3>Local Storage</h3>
+                        <button type="button" id="save" class="btn btn-outline-warning btn-block">Save</button>
+                        <button type="button" id="load" class="btn btn-outline-success btn-block">Load</button>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <h3>Search algorithm</h3>
+                        <div class="form-group form-check">
+                            <input id="allowDiagonal" type="checkbox" class="form-check-input">
+                            <label class="form-check-label" for="allowDiagonal">Allow diagonal moves</label>
+                        </div>
+                        <div class="form-group">
+                            <label for="sleep">Sleep (ms):</label>
+                            <input type="range" class="form-control-range" id="sleep" min="0" max="2000" step="10" value="50">
+                        </div>
+                        <button id="run_dfs" type="button" class="btn btn-outline-primary btn-block">
+                            Depth first search
+                        </button>
+<!--                        <small class="text-muted">-->
+<!--                            [<a href="https://en.wikipedia.org/wiki/Depth-first_search" target="_blank">Wiki</a>]-->
+<!--                            Uninformed. Moves randomly.-->
+<!--                        </small>-->
+
+                        <button id="run_bfs" type="button" class="btn btn-outline-primary btn-block">
+                            Breadth first search
+                        </button>
+<!--                        <small class="text-muted">-->
+<!--                            [<a href="https://en.wikipedia.org/wiki/Breadth-first_search" target="_blank">Wiki</a>]-->
+<!--                            Uninformed. Moves in all possible directions simultaneously.-->
+<!--                            Always finds shortest path to the target.-->
+<!--                        </small>-->
+
+                        <button id="run_best" type="button" class="btn btn-outline-primary btn-block">
+                            Best-first search
+                        </button>
+<!--                        <small class="text-muted">-->
+<!--                            [<a href="https://en.wikipedia.org/wiki/Best-first_search" target="_blank">Wiki</a>]-->
+<!--                            Informed. Uses heuristics. Selects next move based on smaller-->
+<!--                            <a href="https://en.wikipedia.org/wiki/Taxicab_geometry" target="_blank">Manhattan distance</a>.-->
+<!--                        </small>-->
+
+                        <button id="run_a_search" type="button" class="btn btn-outline-primary btn-block">
+                            A* search
+                        </button>
+<!--                        <small class="text-muted">-->
+<!--                            [<a href="https://en.wikipedia.org/wiki/A*_search_algorithm" target="_blank">Wiki</a>]-->
+<!--                            Informed. Uses heuristics. Selects next move based on smaller-->
+<!--                            <a href="https://en.wikipedia.org/wiki/Taxicab_geometry" target="_blank">Manhattan distance</a>-->
+<!--                            and path length so far.-->
+<!--                        </small>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
