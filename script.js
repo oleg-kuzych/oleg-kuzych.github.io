@@ -571,6 +571,75 @@ Overhead: ${route} (visited - route)
 Blank: ${blank} (${Math.floor(blank * 100 / total)}%)`;
 }
 
+function generateMaze() {
+	applyInit();
+
+	let h = data.length;
+	let w = data[0].length;
+	let unvisited = 0;
+	for (let i = 0; i < h; i++) {
+		for (let j = 0; j < w; j++) {
+			if ((i % 2 !== 0 && j % 2 !== 0) && (i < h - 1 && j < w - 1)) {
+				data[i][j] = BLANK;
+				unvisited++;
+			} else {
+				data[i][j] = WALL;
+			}
+		}
+	}
+
+	let stack = [];
+	let cur = {"x": 1, "y": 1};
+	do {
+		let neighbours = getUnvisitedNeighbours(cur.x, cur.y);
+		if (neighbours.length !== 0) {
+			let idx = Math.floor(Math.random() * (neighbours.length));
+			let next = neighbours[idx];
+			stack.push(cur);
+			unvisited--;
+			removeWall(cur, next);
+			cur = next;
+			data[cur.x][cur.y] = VISITED;
+		} else if (stack.length !== 0) {
+			cur = stack.pop();
+		}
+	} while (unvisited > 0);
+
+	cleanup();
+	drawBoard();
+}
+
+function removeWall(first, second) {
+	let xDiff = second.x - first.x;
+	let yDiff = second.y - first.y;
+
+	let addX = (xDiff !== 0) ? (xDiff / Math.abs(xDiff)) : 0;
+	let addY = (yDiff !== 0) ? (yDiff / Math.abs(yDiff)) : 0;
+
+	let target = {"x": first.x + addX, "y": first.y + addY};
+
+	data[target.x][target.y] = VISITED;
+}
+
+function getUnvisitedNeighbours(x, y) {
+	let next = [
+		{"x": x + 2, "y": y},
+		{"x": x - 2, "y": y},
+		{"x": x, "y": y + 2},
+		{"x": x, "y": y - 2}
+	];
+
+	let res = [];
+	for (let idx in next) {
+		let item = next[idx];
+		if (item.x > 0 && item.x < data.length && item.y > 0 && item.y < data[0].length
+			&& data[item.x][item.y] !== WALL && data[item.x][item.y] !== VISITED) {
+			res.push(item);
+		}
+	}
+	return res;
+}
+
 window.onload = function() {
 	addOnClickListenerNoScaling();
 
@@ -603,6 +672,7 @@ window.onload = function() {
 
 	document.getElementById('init').addEventListener('click', applyInit, false);
 	document.getElementById('cleanup').addEventListener('click', cleanup, false);
+	document.getElementById('generate').addEventListener('click', generateMaze, false);
 
 	showTimeout();
 	document.getElementById('sleep').addEventListener('change', showTimeout, false);
