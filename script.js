@@ -156,9 +156,13 @@ function drawBoard() {
 }
 
 function applyInit() {
-    let height = Number(document.getElementById("board_height").value);
-    let width = Number(document.getElementById("board_width").value);
-    if (width > 100 || width < 1 || height > 100 || height < 1) {
+    let h = document.getElementById("board_height");
+    let height = Number(h.value);
+    let maxHeight = Number(h.getAttribute('max'));
+    let w = document.getElementById("board_width");
+    let width = Number(w.value);
+    let maxWidth = Number(w.getAttribute('max'));
+    if (width > maxWidth || width < 1 || height > maxHeight || height < 1) {
         alert(`Invalid range. Width: ${width} and Height: ${height} combination is unsupported!`);
         return false;
     }
