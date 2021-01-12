@@ -233,12 +233,15 @@ function shuffle(array) {
 	return array;
 }
 
+function isDiagonalMoveAllowed() {
+	return document.getElementById('allowDiagonal').checked;
+}
+
 function getNextSteps(x, y) {
-	let allowDiagonal = document.getElementById('allowDiagonal').checked;
 	let next = [];
 	for (let i = -1; i < 2; i++) {
 		for (let j = -1; j < 2; j++) {
-			if ((i === 0 && j === 0) || (!allowDiagonal && Math.abs(i) === Math.abs(j))) {
+			if ((i === 0 && j === 0) || (!isDiagonalMoveAllowed() && Math.abs(i) === Math.abs(j))) {
 				continue;
 			}
 			next.push({"x": x + i, "y": y + j});
@@ -296,13 +299,11 @@ async function bestFirstSearch() {
 			}
 
 			if (data[i][j] === START) {
-				console.log(`Starting route from [${i},${j}]`)
 				start.x = i;
 				start.y = j;
 			}
 			// todo handle more than one end
 			if (data[i][j] === END) {
-				console.log(`End is [${i},${j}]`)
 				end.x = i;
 				end.y = j;
 			}
@@ -315,7 +316,6 @@ async function bestFirstSearch() {
 	while (!queue.isEmpty()) {
 
 		let p = queue.dequeue();
-		console.log(`Processing point [${p.x},${p.y}] (dist: ${p.priority})`);
 		if (data[p.x][p.y] === ROUTE) {
 			console.log("Skipping already processed point");
 			continue;
@@ -371,13 +371,11 @@ async function aStarSearch() {
 			}
 
 			if (data[i][j] === START) {
-				console.log(`Starting route from [${i},${j}]`)
 				start.x = i;
 				start.y = j;
 			}
 			// todo handle more than one end
 			if (data[i][j] === END) {
-				console.log(`End is [${i},${j}]`)
 				end.x = i;
 				end.y = j;
 			}
@@ -441,8 +439,11 @@ async function aStarSearch() {
 	}
 }
 
-// manhattan distance
 function distance(i, j, end) {
+	if (isDiagonalMoveAllowed()) {
+		return Math.max(Math.abs(end.x - i), Math.abs(end.y - j));
+	}
+	// manhattan distance
 	return Math.abs(end.x - i) + Math.abs(end.y - j);
 }
 
