@@ -565,11 +565,25 @@ function generateMaze() {
         }
     } while (unvisited > 0);
 
-    data[randomInt(data.length)][randomInt(data[0].length)] = START;
-    data[randomInt(data.length)][randomInt(data[0].length)] = END;
-
     cleanup();
+    generateStartAndEnd();
     drawBoard();
+}
+
+function generateStartAndEnd() {
+    let x;
+    let y;
+    do {
+        x = randomInt(data.length);
+        y = randomInt(data[0].length);
+    } while (getNextSteps(x, y, 1).length === 0);
+    data[x][y] = START;
+
+    do {
+        x = randomInt(data.length);
+        y = randomInt(data[0].length);
+    } while (getNextSteps(x, y, 1).length === 0);
+    data[x][y] = END;
 }
 
 function removeWall(first, second) {
