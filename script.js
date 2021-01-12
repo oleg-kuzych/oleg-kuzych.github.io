@@ -44,7 +44,6 @@ let data = [
 	[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];
 
-// User defined class
 // to store element and its priority
 class QElement {
 
@@ -56,10 +55,8 @@ class QElement {
 	}
 }
 
-// PriorityQueue class
 class PriorityQueue {
 
-	// An array is used to implement priority
 	constructor() {
 		this.items = [];
 	}
@@ -78,16 +75,12 @@ class PriorityQueue {
 		return lo;
 	}
 
-	// enqueue function to add element to the queue as per priority
 	enqueue(element, priority) {
-		// creating object from queue element
 		let qElement = new QElement(element, priority);
 		let idx = this.search(priority);
 		this.items.splice(idx, 0, qElement);
 	}
 
-	// dequeue method to remove element from the queue
-	// return the dequeued element and remove it. if the queue is empty returns Underflow
 	dequeue() {
 		if (this.isEmpty()) {
 			throw new Error('Queue is empty');
@@ -95,7 +88,6 @@ class PriorityQueue {
 		return this.items.shift().element;
 	}
 
-	// return true if the queue is empty.
 	isEmpty() {
 		return this.items.length === 0;
 	}
@@ -105,36 +97,10 @@ class Cell {
 	
 	row;
 	col;
-	type;
-	
-	constructor(row, col, type) {
+
+	constructor(row, col) {
 		this.row = row;
 		this.col = col;
-		this.type = type;
-	}
-	
-	update(type) {
-		this.type = type;
-		this.draw();
-	}
-
-	write(text) {
-		if (text) {
-			let board = document.getElementById('board');
-			if (board && board.getContext) {
-				let ctx = board.getContext('2d');
-				let w = board.width / data[0].length;
-				let h = board.height / data.length;
-
-				let x = w * this.col;
-				let y = h * this.row;
-
-				let fontSize = Math.floor(h / 3);
-				ctx.font = `bold ${fontSize}px serif`;
-				ctx.fillStyle = "orange";
-				ctx.fillText(text, x + 5, y + fontSize + 5);
-			}
-		}
 	}
 
 	draw(text) {
@@ -150,7 +116,7 @@ class Cell {
 			ctx.fillStyle = "grey";
 			ctx.fillRect(x, y, w, h);
 			// cell
-			switch (this.type) {
+			switch (data[this.row][this.col]) {
 				case BLANK:
 					ctx.fillStyle = "white";
 					break;
@@ -174,7 +140,12 @@ class Cell {
 			}
 			ctx.fillRect(x + 1, y + 1, w - 1, h - 1);
 
-			this.write(text);
+			if (text) {
+				let fontSize = Math.floor(h / 3);
+				ctx.font = `bold ${fontSize}px serif`;
+				ctx.fillStyle = "orange";
+				ctx.fillText(text, x + 5, y + fontSize + 5);
+			}
 		}
 	}
 }
@@ -192,57 +163,16 @@ function addOnClickListenerNoScaling() {
 			let x = event.pageX - boardLeft;
 			let y = event.pageY - boardTop;
 
-			// console.log(`x: ${x} y: ${y}`);
-			// let sx = Math.floor(x / wScale);
-			// let sy = Math.floor(y / hScale);
-			// console.log(`Scaled x: ${sx} y: ${sy}`);
-
 			let col = Math.trunc(x / (board.width / data[0].length));
 			let row = Math.trunc(y / (board.height / data.length));
-			// console.log(`Row: ${row}, Col: ${col}`);
 
-			let t = Number(document.querySelector("input[name='cellType']:checked").value);
-			// console.log(`Type is ${t}`);
-			data[row][col] = t;
-			new Cell(row, col, t).draw();
-		}
-	}, false);
-}
-
-function addOnClickListener() {
-	let board = document.getElementById('board');
-	let boardLeft = board.offsetLeft + board.clientLeft;
-    let boardTop = board.offsetTop + board.clientTop;
-
-	let wScale = board.clientWidth / board.width;
-	let hScale = board.clientHeight / board.height;
-	// console.log(`Width scale: ${wScale}`);
-	// console.log(`Height scale: ${hScale}`);
-	
-	board.addEventListener('mousemove', function(event) {
-		if (event.ctrlKey) {
-			let x = event.pageX - boardLeft;
-			let y = event.pageY - boardTop;
-
-			// console.log(`x: ${x} y: ${y}`);
-			let sx = Math.floor(x / wScale);
-			let sy = Math.floor(y / hScale);
-			// console.log(`Scaled x: ${sx} y: ${sy}`);
-
-			let col = Math.trunc(sx / (board.width / data[0].length));
-			let row = Math.trunc(sy / (board.height / data.length));
-			// console.log(`Row: ${row}, Col: ${col}`);
-
-			let t = Number(document.querySelector("input[name='cellType']:checked").value);
-			// console.log(`Type is ${t}`);
-			data[row][col] = t;
-			new Cell(row, col, t).draw();
+			data[row][col] = Number(document.querySelector("input[name='cellType']:checked").value);
+			new Cell(row, col).draw();
 		}
 	}, false);
 }
 
 function init(height, width) {
-	console.log(`Init board with width: ${width} and height: ${height}`);
 	data = new Array(height);
 
 	for (let i = 0; i < data.length; i++) {
@@ -257,7 +187,7 @@ function init(height, width) {
 function drawBoard() {
 	for (let i = 0; i < data.length; i++) {
 		for (let j = 0; j < data[i].length; j++) {
-			new Cell(i, j, data[i][j]).draw();
+			new Cell(i, j).draw();
 		}
 	}
 }
@@ -273,13 +203,12 @@ function applyInit() {
 	return true;
 }
 
-function solve() {
+function solveDFS() {
 	for (let i = 0; i < data.length; i++) {
 		for (let j = 0; j < data[i].length; j++) {
 			if (data[i][j] === START) {
-				console.log(`Starting route from [${i},${j}]`)
 				dfs(i, j).then(result => {
-					console.log(`Found solution: ${result}`);
+					console.log(`DFS. Found solution: ${result}`);
 				});
 				break;
 			}
@@ -304,7 +233,7 @@ function shuffle(array) {
 	return array;
 }
 
-function nextSteps(x, y) {
+function getNextSteps(x, y) {
 	let allowDiagonal = document.getElementById('allowDiagonal').checked;
 	let next = [];
 	for (let i = -1; i < 2; i++) {
@@ -322,8 +251,6 @@ async function dfs(i, j) {
 	if (i >= 0 && i < data.length && j >= 0 && j < data[i].length) {
 
 		if (data[i][j] === END) {
-			// data[i][j] = ROUTE;
-			// new Cell(i, j, ROUTE).draw();
 			return true;
 		}
 
@@ -333,10 +260,10 @@ async function dfs(i, j) {
 
 			if (data[i][j] !== START) {
 				data[i][j] = VISITED;
-				new Cell(i, j, VISITED).draw();
+				new Cell(i, j).draw();
 			}
 
-			let next = nextSteps(i, j);
+			let next = getNextSteps(i, j);
 			shuffle(next); // pick a way randomly
 
 			for (let idx in next) {
@@ -350,9 +277,8 @@ async function dfs(i, j) {
 			if (data[i][j] !== START) {
 				// await sleep();
 				data[i][j] = ROUTE;
-				new Cell(i, j, ROUTE).draw();
+				new Cell(i, j).draw();
 			}
-			return false;
 		}
 	}
 	return false;
@@ -402,10 +328,9 @@ async function bestFirstSearch() {
 			p = p.prev;
 			while (p.prev != null) {
 				data[p.x][p.y] = VISITED;
-				new Cell(p.x, p.y, VISITED).draw(p.priority);
+				new Cell(p.x, p.y).draw(p.priority);
 				p = p.prev;
 			}
-
 			return;
 		}
 
@@ -413,16 +338,16 @@ async function bestFirstSearch() {
 
 		if (data[p.x][p.y] !== START) {
 			data[p.x][p.y] = ROUTE;
-			new Cell(p.x, p.y, ROUTE).draw(p.priority);
+			new Cell(p.x, p.y).draw(p.priority);
 		}
 
-		let next = nextSteps(p.x, p.y);
+		let next = getNextSteps(p.x, p.y);
 
 		for (let idx in next) {
 			let item = next[idx];
 			if (isValidSpace(item.x, item.y)) {
 				let dist = distance(item.x, item.y, end);
-				new Cell(item.x, item.y, data[item.x][item.y]).draw(dist);
+				new Cell(item.x, item.y).draw(dist);
 				queue.enqueue({"x": item.x, "y": item.y, "prev": p, "priority": dist}, dist);
 			}
 		}
@@ -464,10 +389,10 @@ async function aStarSearch() {
 	for (let i = 0; i < stepData.length; i++) {
 		stepData[i] = new Array(data[0].length);
 		for (let j = 0; j < stepData[i].length; j++) {
+			// init with max possible value for manhattan distance on current board
 			stepData[i][j] = data.length + data[0].length;
 		}
 	}
-
 
 	let queue = new PriorityQueue();
 	queue.enqueue({"x": start.x, "y": start.y, "prev": null, "priority": 0, "step": 0}, 0);
@@ -475,7 +400,6 @@ async function aStarSearch() {
 
 	while (!queue.isEmpty()) {
 		let p = queue.dequeue();
-		console.log(`Processing point [${p.x},${p.y}] (dist: ${p.priority})`);
 		if (data[p.x][p.y] === ROUTE) {
 			console.log("Skipping already processed point");
 			continue;
@@ -488,10 +412,9 @@ async function aStarSearch() {
 			p = p.prev;
 			while (p.prev != null) {
 				data[p.x][p.y] = VISITED;
-				new Cell(p.x, p.y, VISITED).draw(`[${p.priority}]+${p.step}`);
+				new Cell(p.x, p.y).draw(`[${p.priority}]+${p.step}`);
 				p = p.prev;
 			}
-
 			return;
 		}
 
@@ -500,10 +423,10 @@ async function aStarSearch() {
 		if (data[p.x][p.y] !== START) {
 			data[p.x][p.y] = ROUTE;
 			let stepN = Math.min(stepData[p.x][p.y], p.step);
-			new Cell(p.x, p.y, ROUTE).draw(`[${p.priority}]+${stepN}`);
+			new Cell(p.x, p.y).draw(`[${p.priority}]+${stepN}`);
 		}
 
-		let next = nextSteps(p.x, p.y);
+		let next = getNextSteps(p.x, p.y);
 
 		for (let idx in next) {
 			let item = next[idx];
@@ -511,13 +434,14 @@ async function aStarSearch() {
 				let dist = distance(item.x, item.y, end);
 				let stepN = Math.min(stepData[item.x][item.y], p.step + 1);
 				stepData[item.x][item.y] = stepN;
-				new Cell(item.x, item.y, data[item.x][item.y]).draw(`[${dist}]+${stepN}`);
+				new Cell(item.x, item.y).draw(`[${dist}]+${stepN}`);
 				queue.enqueue({"x": item.x, "y": item.y, "prev": p, "priority": dist, "step": stepN}, dist + stepN);
 			}
 		}
 	}
 }
 
+// manhattan distance
 function distance(i, j, end) {
 	return Math.abs(end.x - i) + Math.abs(end.y - j);
 }
@@ -529,7 +453,6 @@ async function bfs() {
 	for (let i = 0; i < data.length; i++) {
 		for (let j = 0; j < data[i].length; j++) {
 			if (data[i][j] === START) {
-				console.log(`Starting route from [${i},${j}]`)
 				x = i;
 				y = j;
 				break;
@@ -547,7 +470,6 @@ async function bfs() {
 		let size = queue.length;
 		for (let i = 0; i < size; i++) {
 			let p = queue.shift();
-			console.log(`Procesing point [${p.x},${p.y}]`)
 			if (data[p.x][p.y] === ROUTE) {
 				console.log("Already processed - skipping")
 				continue;
@@ -561,19 +483,18 @@ async function bfs() {
 				let num = 1;
 				while (p.prev != null) {
 					data[p.x][p.y] = VISITED;
-					new Cell(p.x, p.y, VISITED).draw(num++);
+					new Cell(p.x, p.y).draw(num++);
 					p = p.prev;
 				}
-
 				return;
 			}
 
 			if (data[p.x][p.y] !== START) {
 				data[p.x][p.y] = ROUTE;
-				new Cell(p.x, p.y, ROUTE).draw();
+				new Cell(p.x, p.y).draw();
 			}
 
-			let next = nextSteps(p.x, p.y);
+			let next = getNextSteps(p.x, p.y);
 			for (let idx in next) {
 				let item = next[idx];
 				if (isValidSpace(item.x, item.y)) {
@@ -614,7 +535,6 @@ function showTimeout() {
 
 function stats() {
 	let total = data.length * data[0].length;
-	console.log(`Total cells: ${total}`);
 	let wall = 0;
 	let blank = 0;
 	let route = 0;
@@ -640,10 +560,6 @@ function stats() {
 			}
 		}
 	}
-	console.log(`Route: ${visited} (${Math.floor(visited * 100 / total)}%)`);
-	console.log(`Wall: ${wall} (${Math.floor(wall * 100 / total)}%)`);
-	console.log(`Visited: ${route + visited} (${Math.floor((route + visited) * 100 / (total - wall))}% of possible cells)`);
-	console.log(`Blank: ${blank} (${Math.floor(blank * 100 / total)}%)`);
 
 	document.getElementById('stats').innerText = `
 Stats:
@@ -655,7 +571,6 @@ Blank: ${blank} (${Math.floor(blank * 100 / total)}%)`;
 }
 
 window.onload = function() {
-	// addOnClickListener();
 	addOnClickListenerNoScaling();
 
 	if (data.length === 0) {
@@ -664,7 +579,7 @@ window.onload = function() {
 		drawBoard();
 	}
 
-	document.getElementById('run_dfs').addEventListener('click', solve, false);
+	document.getElementById('run_dfs').addEventListener('click', solveDFS, false);
 	document.getElementById('run_bfs').addEventListener('click', bfs, false);
 	document.getElementById('run_best').addEventListener('click', bestFirstSearch, false);
 	document.getElementById('run_a_search').addEventListener('click', aStarSearch, false);
